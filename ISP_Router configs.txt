@@ -1,0 +1,41 @@
+ISP_Router> enable
+ISP_Router# configure terminal
+
+ISP_Router(config)# hostname ISP_Router
+ISP_Router(config)# ip cef
+ISP_Router(config)# no ipv6 cef
+ISP_Router(config)# ip classless
+ISP_Router(config)# spanning-tree mode pvst
+ISP_Router(config)# ip flow-export version 9
+
+ISP_Router(config)# interface GigabitEthernet0/0/0
+ISP_Router(config-if)# ip address 41.215.10.2 255.255.255.252
+ISP_Router(config-if)# duplex auto
+ISP_Router(config-if)# speed auto
+ISP_Router(config-if)# exit
+
+ISP_Router(config)# interface GigabitEthernet0/0/1
+ISP_Router(config-if)# ip address 8.8.8.1 255.255.255.0
+ISP_Router(config-if)# duplex auto
+ISP_Router(config-if)# speed auto
+ISP_Router(config-if)# exit
+
+ISP_Router(config)# interface GigabitEthernet0/0/2
+ISP_Router(config-if)# ip address 10.0.2.1 255.255.255.252
+ISP_Router(config-if)# duplex auto
+ISP_Router(config-if)# speed auto
+ISP_Router(config-if)# exit
+
+ISP_Router(config)# interface Vlan1
+ISP_Router(config-if)# no ip address
+ISP_Router(config-if)# shutdown
+ISP_Router(config-if)# exit
+
+ISP_Router(config)# line con 0
+ISP_Router(config-line)# exit
+
+ISP_Router(config)# line vty 0 4
+ISP_Router(config-line)# login
+ISP_Router(config-line)# end
+
+ISP_Router# copy running-config startup-config

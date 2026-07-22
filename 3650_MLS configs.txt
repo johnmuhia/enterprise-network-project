@@ -1,0 +1,82 @@
+3650_MLS> enable
+3650_MLS# configure terminal
+
+3650_MLS(config)# hostname 3650_MLS
+3650_MLS(config)# no profinet
+3650_MLS(config)# enable secret 5 $1$mERr$23Dwd5d7PEHKiB8wSw/Vp0
+3650_MLS(config)# username admin privilege 15 secret 5 $1$mERr$4DFOoraMxcN7eLrDFlI92.
+
+3650_MLS(config)# ip routing
+3650_MLS(config)# no ip cef
+3650_MLS(config)# no ipv6 cef
+3650_MLS(config)# ip classless
+3650_MLS(config)# ip domain-name company.local
+3650_MLS(config)# ip ssh version 2
+3650_MLS(config)# ip dhcp relay information trust-all
+3650_MLS(config)# ip flow-export version 9
+
+3650_MLS(config)# spanning-tree mode pvst
+3650_MLS(config)# spanning-tree vlan 10,20 priority 24576
+
+3650_MLS(config)# interface GigabitEthernet1/0/1
+3650_MLS(config-if)# switchport mode trunk
+3650_MLS(config-if)# switchport trunk native vlan 99
+3650_MLS(config-if)# switchport trunk allowed vlan 10,20,99
+3650_MLS(config-if)# exit
+
+3650_MLS(config)# interface GigabitEthernet1/0/2
+3650_MLS(config-if)# switchport mode trunk
+3650_MLS(config-if)# switchport trunk native vlan 99
+3650_MLS(config-if)# switchport trunk allowed vlan 10,20,99
+3650_MLS(config-if)# exit
+
+3650_MLS(config)# interface GigabitEthernet1/0/23
+3650_MLS(config-if)# description Uplink_to_HQ_Edge_Router
+3650_MLS(config-if)# no switchport
+3650_MLS(config-if)# ip address 192.168.10.201 255.255.255.252
+3650_MLS(config-if)# duplex auto
+3650_MLS(config-if)# speed auto
+3650_MLS(config-if)# exit
+
+3650_MLS(config)# interface Vlan1
+3650_MLS(config-if)# no ip address
+3650_MLS(config-if)# shutdown
+3650_MLS(config-if)# exit
+
+3650_MLS(config)# interface Vlan10
+3650_MLS(config-if)# description Gateway_for_HR_Office
+3650_MLS(config-if)# mac-address 0002.1713.9801
+3650_MLS(config-if)# ip address 192.168.10.1 255.255.255.128
+3650_MLS(config-if)# ip helper-address 192.168.10.202
+3650_MLS(config-if)# exit
+
+3650_MLS(config)# interface Vlan20
+3650_MLS(config-if)# description Gateway_for_Sales_Dept
+3650_MLS(config-if)# mac-address 0002.1713.9802
+3650_MLS(config-if)# ip address 192.168.10.129 255.255.255.192
+3650_MLS(config-if)# ip helper-address 192.168.10.202
+3650_MLS(config-if)# exit
+
+3650_MLS(config)# ip route 0.0.0.0 0.0.0.0 192.168.10.202
+
+3650_MLS(config)# access-list 101 deny ip 192.168.10.128 0.0.0.127 192.168.10.0 0.0.0.127
+3650_MLS(config)# access-list 101 permit ip any any
+
+3650_MLS(config)# line con 0
+3650_MLS(config-line)# exec-timeout 5 0
+3650_MLS(config-line)# login local
+3650_MLS(config-line)# exit
+
+3650_MLS(config)# line vty 0 4
+3650_MLS(config-line)# exec-timeout 5 0
+3650_MLS(config-line)# login local
+3650_MLS(config-line)# transport input ssh
+3650_MLS(config-line)# exit
+
+3650_MLS(config)# line vty 5 15
+3650_MLS(config-line)# exec-timeout 5 0
+3650_MLS(config-line)# login local
+3650_MLS(config-line)# transport input ssh
+3650_MLS(config-line)# end
+
+3650_MLS# copy running-config startup-config

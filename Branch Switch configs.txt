@@ -1,0 +1,24 @@
+Switch> enable
+Switch# configure terminal
+
+Switch(config)# hostname Switch
+Switch(config)# spanning-tree mode pvst
+Switch(config)# spanning-tree extend system-id
+
+Switch(config)# interface Vlan1
+Switch(config-if)# no ip address
+Switch(config-if)# shutdown
+Switch(config-if)# exit
+
+Switch(config)# line con 0
+Switch(config-line)# exit
+
+Switch(config)# line vty 0 4
+Switch(config-line)# login
+Switch(config-line)# exit
+
+Switch(config)# line vty 5 15
+Switch(config-line)# login
+Switch(config-line)# end
+
+Switch# copy running-config startup-config

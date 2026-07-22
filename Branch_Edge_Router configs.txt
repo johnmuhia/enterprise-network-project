@@ -1,0 +1,90 @@
+Branch_Edge_Router> enable
+Branch_Edge_Router# configure terminal
+
+Branch_Edge_Router(config)# hostname Branch_Edge_Router
+Branch_Edge_Router(config)# enable secret 5 $1$mERr$23Dwd5d7PEHKiB8wSw/Vp0
+Branch_Edge_Router(config)# username admin privilege 15 secret 5 $1$mERr$4DFOoraMxcN7eLrDFlI92.
+
+Branch_Edge_Router(config)# ip cef
+Branch_Edge_Router(config)# no ipv6 cef
+Branch_Edge_Router(config)# ip classless
+Branch_Edge_Router(config)# ip domain-name company.local
+Branch_Edge_Router(config)# ip ssh version 2
+Branch_Edge_Router(config)# ip flow-export version 9
+
+Branch_Edge_Router(config)# crypto isakmp policy 10
+Branch_Edge_Router(config-isakmp)# encr aes
+Branch_Edge_Router(config-isakmp)# authentication pre-share
+Branch_Edge_Router(config-isakmp)# group 5
+Branch_Edge_Router(config-isakmp)# exit
+
+Branch_Edge_Router(config)# crypto isakmp key Cisc0VPNPass123 address 41.215.10.1
+Branch_Edge_Router(config)# crypto ipsec transform-set GRE-SET esp-aes esp-sha-hmac
+Branch_Edge_Router(config)# access-list 101 permit gre host 10.0.2.2 host 41.215.10.1
+
+Branch_Edge_Router(config)# crypto map BRANCH-MAP 10 ipsec-isakmp
+Branch_Edge_Router(config-crypto-map)# set peer 41.215.10.1
+Branch_Edge_Router(config-crypto-map)# set transform-set GRE-SET
+Branch_Edge_Router(config-crypto-map)# match address 101
+Branch_Edge_Router(config-crypto-map)# exit
+
+Branch_Edge_Router(config)# interface Tunnel0
+Branch_Edge_Router(config-if)# ip address 172.16.1.2 255.255.255.252
+Branch_Edge_Router(config-if)# mtu 1476
+Branch_Edge_Router(config-if)# tunnel source GigabitEthernet0/0/1
+Branch_Edge_Router(config-if)# tunnel destination 41.215.10.1
+Branch_Edge_Router(config-if)# exit
+
+Branch_Edge_Router(config)# interface GigabitEthernet0/0/0
+Branch_Edge_Router(config-if)# ip address 192.168.50.1 255.255.255.0
+Branch_Edge_Router(config-if)# duplex auto
+Branch_Edge_Router(config-if)# speed auto
+Branch_Edge_Router(config-if)# exit
+
+Branch_Edge_Router(config)# interface GigabitEthernet0/0/1
+Branch_Edge_Router(config-if)# ip address 10.0.2.2 255.255.255.252
+Branch_Edge_Router(config-if)# duplex auto
+Branch_Edge_Router(config-if)# speed auto
+Branch_Edge_Router(config-if)# crypto map BRANCH-MAP
+Branch_Edge_Router(config-if)# exit
+
+Branch_Edge_Router(config)# interface GigabitEthernet0/0/2
+Branch_Edge_Router(config-if)# no ip address
+Branch_Edge_Router(config-if)# duplex auto
+Branch_Edge_Router(config-if)# speed auto
+Branch_Edge_Router(config-if)# shutdown
+Branch_Edge_Router(config-if)# exit
+
+Branch_Edge_Router(config)# interface Vlan1
+Branch_Edge_Router(config-if)# no ip address
+Branch_Edge_Router(config-if)# shutdown
+Branch_Edge_Router(config-if)# exit
+
+Branch_Edge_Router(config)# router ospf 1
+Branch_Edge_Router(config-router)# router-id 2.2.2.2
+Branch_Edge_Router(config-router)# log-adjacency-changes
+Branch_Edge_Router(config-router)# network 192.168.50.0 0.0.0.255 area 0
+Branch_Edge_Router(config-router)# network 172.16.1.0 0.0.0.3 area 0
+Branch_Edge_Router(config-router)# default-information originate
+Branch_Edge_Router(config-router)# exit
+
+Branch_Edge_Router(config)# ip route 0.0.0.0 0.0.0.0 10.0.2.1
+
+Branch_Edge_Router(config)# line con 0
+Branch_Edge_Router(config-line)# exec-timeout 5 0
+Branch_Edge_Router(config-line)# login local
+Branch_Edge_Router(config-line)# exit
+
+Branch_Edge_Router(config)# line vty 0 4
+Branch_Edge_Router(config-line)# exec-timeout 5 0
+Branch_Edge_Router(config-line)# login local
+Branch_Edge_Router(config-line)# transport input ssh
+Branch_Edge_Router(config-line)# exit
+
+Branch_Edge_Router(config)# line vty 5 15
+Branch_Edge_Router(config-line)# exec-timeout 5 0
+Branch_Edge_Router(config-line)# login local
+Branch_Edge_Router(config-line)# transport input ssh
+Branch_Edge_Router(config-line)# end
+
+Branch_Edge_Router# copy running-config startup-config

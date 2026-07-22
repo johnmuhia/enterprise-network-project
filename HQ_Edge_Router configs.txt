@@ -1,0 +1,127 @@
+HQ_Edge_Router> enable
+HQ_Edge_Router# configure terminal
+
+HQ_Edge_Router(config)# hostname HQ_Edge_Router
+HQ_Edge_Router(config)# enable secret 5 $1$mERr$23Dwd5d7PEHKiB8wSw/Vp0
+HQ_Edge_Router(config)# username admin privilege 15 secret 5 $1$mERr$4DFOoraMxcN7eLrDFlI92.
+
+HQ_Edge_Router(config)# ip cef
+HQ_Edge_Router(config)# no ipv6 cef
+HQ_Edge_Router(config)# ip classless
+HQ_Edge_Router(config)# ip domain-name company.local
+HQ_Edge_Router(config)# ip ssh version 2
+HQ_Edge_Router(config)# ip flow-export version 9
+
+HQ_Edge_Router(config)# ip dhcp excluded-address 192.168.10.1 192.168.10.5
+HQ_Edge_Router(config)# ip dhcp excluded-address 192.168.10.129 192.168.10.132
+
+HQ_Edge_Router(config)# ip dhcp pool HR_POOL
+HQ_Edge_Router(dhcp-config)# network 192.168.10.0 255.255.255.128
+HQ_Edge_Router(dhcp-config)# default-router 192.168.10.1
+HQ_Edge_Router(dhcp-config)# dns-server 8.8.8.8
+HQ_Edge_Router(dhcp-config)# exit
+
+HQ_Edge_Router(config)# ip dhcp pool SALES_POOL
+HQ_Edge_Router(dhcp-config)# network 192.168.10.128 255.255.255.192
+HQ_Edge_Router(dhcp-config)# default-router 192.168.10.129
+HQ_Edge_Router(dhcp-config)# dns-server 8.8.8.8
+HQ_Edge_Router(dhcp-config)# exit
+
+HQ_Edge_Router(config)# crypto isakmp policy 10
+HQ_Edge_Router(config-isakmp)# encr aes
+HQ_Edge_Router(config-isakmp)# authentication pre-share
+HQ_Edge_Router(config-isakmp)# group 5
+HQ_Edge_Router(config-isakmp)# exit
+
+HQ_Edge_Router(config)# crypto isakmp key Cisc0VPNPass123 address 10.0.2.2
+HQ_Edge_Router(config)# crypto ipsec transform-set GRE-SET esp-aes esp-sha-hmac
+HQ_Edge_Router(config)# access-list 101 permit gre host 41.215.10.1 host 10.0.2.2
+
+HQ_Edge_Router(config)# crypto map HQ-MAP 10 ipsec-isakmp
+HQ_Edge_Router(config-crypto-map)# set peer 10.0.2.2
+HQ_Edge_Router(config-crypto-map)# set transform-set GRE-SET
+HQ_Edge_Router(config-crypto-map)# match address 101
+HQ_Edge_Router(config-crypto-map)# exit
+
+HQ_Edge_Router(config)# interface Tunnel0
+HQ_Edge_Router(config-if)# ip address 172.16.1.1 255.255.255.252
+HQ_Edge_Router(config-if)# mtu 1476
+HQ_Edge_Router(config-if)# tunnel source GigabitEthernet0/0/1
+HQ_Edge_Router(config-if)# tunnel destination 10.0.2.2
+HQ_Edge_Router(config-if)# exit
+
+HQ_Edge_Router(config)# interface GigabitEthernet0/0/0
+HQ_Edge_Router(config-if)# description Transport_Link_to_Distribution_Core
+HQ_Edge_Router(config-if)# ip address 192.168.10.202 255.255.255.252
+HQ_Edge_Router(config-if)# ip nat inside
+HQ_Edge_Router(config-if)# duplex auto
+HQ_Edge_Router(config-if)# speed auto
+HQ_Edge_Router(config-if)# exit
+
+HQ_Edge_Router(config)# interface GigabitEthernet0/0/1
+HQ_Edge_Router(config-if)# ip address 41.215.10.1 255.255.255.252
+HQ_Edge_Router(config-if)# ip nat outside
+HQ_Edge_Router(config-if)# crypto map HQ-MAP
+HQ_Edge_Router(config-if)# duplex auto
+HQ_Edge_Router(config-if)# speed auto
+HQ_Edge_Router(config-if)# exit
+
+HQ_Edge_Router(config)# interface GigabitEthernet0/0/2
+HQ_Edge_Router(config-if)# ip address 192.168.20.1 255.255.255.0
+HQ_Edge_Router(config-if)# ip nat inside
+HQ_Edge_Router(config-if)# ip access-group DMZ_ISOLATION_ACL in
+HQ_Edge_Router(config-if)# duplex auto
+HQ_Edge_Router(config-if)# speed auto
+HQ_Edge_Router(config-if)# exit
+
+HQ_Edge_Router(config)# interface Vlan1
+HQ_Edge_Router(config-if)# no ip address
+HQ_Edge_Router(config-if)# shutdown
+HQ_Edge_Router(config-if)# exit
+
+HQ_Edge_Router(config)# router ospf 1
+HQ_Edge_Router(config-router)# router-id 1.1.1.1
+HQ_Edge_Router(config-router)# log-adjacency-changes
+HQ_Edge_Router(config-router)# network 192.168.10.0 0.0.0.255 area 0
+HQ_Edge_Router(config-router)# network 192.168.20.0 0.0.0.255 area 0
+HQ_Edge_Router(config-router)# network 192.168.30.0 0.0.0.255 area 0
+HQ_Edge_Router(config-router)# network 172.16.1.0 0.0.0.3 area 0
+HQ_Edge_Router(config-router)# default-information originate
+HQ_Edge_Router(config-router)# exit
+
+HQ_Edge_Router(config)# access-list 1 permit 192.168.10.0 0.0.0.255
+HQ_Edge_Router(config)# access-list 1 permit 192.168.20.0 0.0.0.255
+HQ_Edge_Router(config)# access-list 1 permit 192.168.50.0 0.0.0.255
+HQ_Edge_Router(config)# ip nat inside source list 1 interface GigabitEthernet0/0/1 overload
+
+HQ_Edge_Router(config)# ip route 192.168.10.0 255.255.255.0 192.168.10.201
+HQ_Edge_Router(config)# ip route 0.0.0.0 0.0.0.0 41.215.10.2
+
+HQ_Edge_Router(config)# ip access-list extended DMZ_ISOLATION_ACL
+HQ_Edge_Router(config-ext-nacl)# permit udp 192.168.20.0 0.0.0.255 any eq domain
+HQ_Edge_Router(config-ext-nacl)# permit tcp 192.168.20.0 0.0.0.255 any eq www
+HQ_Edge_Router(config-ext-nacl)# permit tcp 192.168.20.0 0.0.0.255 any eq 443
+HQ_Edge_Router(config-ext-nacl)# deny ip 192.168.20.0 0.0.0.255 192.168.10.0 0.0.0.255
+HQ_Edge_Router(config-ext-nacl)# permit ip any any
+HQ_Edge_Router(config-ext-nacl)# permit icmp 192.168.20.0 0.0.0.255 192.168.50.0 0.0.0.255
+HQ_Edge_Router(config-ext-nacl)# permit icmp 192.168.50.0 0.0.0.255 192.168.20.0 0.0.0.255
+HQ_Edge_Router(config-ext-nacl)# permit icmp any any
+HQ_Edge_Router(config-ext-nacl)# exit
+
+HQ_Edge_Router(config)# ip access-list extended NO-NAT-VPN
+HQ_Edge_Router(config-ext-nacl)# permit ip 192.168.10.0 0.0.0.255 192.168.50.0 0.0.0.255
+HQ_Edge_Router(config-ext-nacl)# permit ip 192.168.20.0 0.0.0.255 192.168.50.0 0.0.0.255
+HQ_Edge_Router(config-ext-nacl)# exit
+
+HQ_Edge_Router(config)# line con 0
+HQ_Edge_Router(config-line)# exec-timeout 5 0
+HQ_Edge_Router(config-line)# login local
+HQ_Edge_Router(config-line)# exit
+
+HQ_Edge_Router(config)# line vty 0 4
+HQ_Edge_Router(config-line)# exec-timeout 5 0
+HQ_Edge_Router(config-line)# login local
+HQ_Edge_Router(config-line)# transport input ssh
+HQ_Edge_Router(config-line)# end
+
+HQ_Edge_Router# copy running-config startup-config
